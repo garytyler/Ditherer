@@ -1,18 +1,21 @@
 fileFormatVersion: 2
-guid: 5a5cfc2a32918f0499588dc010aee683
+guid: 16f8ffbf1994dfe4da0aae6352b54b56
 timeCreated: 1433429140
 licenseType: Store
 TrueTypeFontImporter:
-  serializedVersion: 2
+  serializedVersion: 4
   fontSize: 16
   forceTextureCase: -2
-  characterSpacing: 1
-  characterPadding: 0
+  characterSpacing: 0
+  characterPadding: 1
   includeFontData: 1
-  use2xBehaviour: 0
-  fontNames: []
+  fontNames:
+  - Times New Arial
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 5a5cfc2a32918f0499588dc010aee683, type: 3}
   customCharacters: 
   fontRenderingMode: 0
+  ascentCalculationMode: 1
   userData: 
   assetBundleName: 
   assetBundleVariant: 
