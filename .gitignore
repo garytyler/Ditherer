@@ -13,7 +13,8 @@ sysinfo.txt
 # Unity User generated #
 # ==================== #
 [Aa]ssets/StreamingAssets
-TheLabRenderer/
+[Aa]ssets/Textures_Substance
+[Aa]ssets/Textures_Other
  
 # ===================================== #
 # Visual Studio / MonoDevelop generated #

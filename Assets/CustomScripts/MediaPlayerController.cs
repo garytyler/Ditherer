@@ -23,8 +23,8 @@ public class MediaPlayerController : MonoBehaviour {
         mp.Events.AddListener(OnVideoEvent);
 
     }
-
-    public void PlayScene(string productType)
+/*
+    public void LoadScene(string productType)
     {
         switch (productType)
         {
@@ -34,7 +34,32 @@ public class MediaPlayerController : MonoBehaviour {
                     mp.Control.Play();
                 }
                 break;
-        }     
+            case "OutOfStock":
+                {
+                    
+                }
+
+          
+        }
+    }
+
+    public void UnloadScene()
+    {
+        mp.CloseVideo(
+    }
+*/
+
+    public void PlayScene(string productType)
+    {
+    //    switch (productType)
+    //    {
+    //        case "AvocadoProduct":
+                if (mp.Control.CanPlay() == true)
+                {
+                    mp.Control.Play();
+                }
+    //            break;
+    //   }     
     }
 
     public void PauseScene(string productType)
@@ -48,7 +73,7 @@ public class MediaPlayerController : MonoBehaviour {
                     currentSceneTimeAvocado = mp.Control.GetCurrentTimeMs();
                     Debug.Log("currentSceneTimeAvocado" + "is set to" + currentSceneTimeAvocado.ToString());
                 }
-                break;
+            break;
         }
     }
 
@@ -70,11 +95,6 @@ ErrorCode errorCode)
                 break;
         }
         Debug.Log("Event: " + et.ToString());
-
-
-
-    mp = GetComponent<MediaPlayer>();
-        mp.Control.Pause();
     }
 
 

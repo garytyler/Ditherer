@@ -12,15 +12,19 @@ public class ControllerInteractEventsListener : MonoBehaviour
     public enum ControllerHand {left, right};
     public GameObject buttonRig;
     public GameObject buttonAddToCart;
-   
+//    public GameObject buttonCheckout;
+
     public GameObject otherController;
     public Collider otherPressCollider;
+
 
     GameObject currentHeldProd;
     ProductInfo currentHeldProdInfo;
     ShoppingCartComponent shoppingCartComponent;
-    
+
     InteractableObjectEventArgs e;
+
+
 
     private void Start()
     {
@@ -31,9 +35,11 @@ public class ControllerInteractEventsListener : MonoBehaviour
 
         currentHeldProd = new GameObject();
         currentHeldProdInfo = new ProductInfo();
-
+        
         shoppingCartComponent = buttonAddToCart.GetComponent<ShoppingCartComponent>();
         buttonAddToCart.GetComponent<VRTK_Button>().events.OnPush.AddListener(ButtonAddToCartPush);
+
+//        buttonCheckout.GetComponent<VRTK_Button>().events.OnPush.AddListener(ButtonCheckoutPush);
 
         StartCoroutine(LateStart(1.0f));
     }
@@ -49,7 +55,12 @@ public class ControllerInteractEventsListener : MonoBehaviour
         Debug.Log("AddToCart Button Pushed: " + currentHeldProdInfo.type);
         shoppingCartComponent.IncreaseCartQuantity(currentHeldProdInfo);
     }
-    
+
+  //  void ButtonCheckoutPush()
+ //   {
+        
+//    }
+
     private void DoInteractTouch(object sender, ObjectInteractEventArgs e)
     {
     }
@@ -70,19 +81,34 @@ public class ControllerInteractEventsListener : MonoBehaviour
             currentHeldProdInfo = e.target.GetComponent<ProductInfo>();
         }
 
-        Debug.Log(currentHeldProdInfo.type + "Grabbed By: " + VRTK_DeviceFinder.ControllerByIndex(e.controllerIndex));
+        if (currentHeldProdInfo.type != ProductInfo.Type.OutOfStock)
+        {
+            StartCoroutine(DelayButtonsActive(2.0f));
+        }
+        
+        //Debug.Log(currentHeldProdInfo.type + "Grabbed By: " + VRTK_DeviceFinder.ControllerByIndex(e.controllerIndex));
 
         currentHeldProd = e.target;
         otherPressCollider.enabled = true;
-        buttonRig.SetActive(true);
     }
 
     private void DoInteractUngrab(object sender, ObjectInteractEventArgs e)
     {
-        if (e.target)
+            otherPressCollider.enabled = false;
+        if(buttonRig)
         {
             buttonRig.SetActive(false);
         }
+            
     }
+
+    IEnumerator DelayButtonsActive(float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
+        buttonRig.SetActive(true);
+    }
+
+
+
 }
 

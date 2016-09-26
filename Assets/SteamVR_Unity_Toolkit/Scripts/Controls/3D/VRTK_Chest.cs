@@ -1,30 +1,42 @@
-﻿namespace VRTK
+﻿// Chest|Controls3D|0030
+namespace VRTK
 {
     using UnityEngine;
 
+    /// <summary>
+    /// Transforms a game object into a chest with a lid. The direction can be auto-detected with very high reliability or set manually.
+    /// </summary>
+    /// <remarks>
+    /// The script will instantiate the required Rigidbody, Interactable and HingeJoint components automatically in case they do not exist yet. It will expect three distinct game objects: a body, a lid and a handle. These should be independent and not children of each other.
+    /// </remarks>
+    /// <example>
+    /// `VRTK/Examples/025_Controls_Overview` shows a chest that can be open and closed, it also displays the current opening angle of the chest.
+    /// </example>
     public class VRTK_Chest : VRTK_Control
     {
+        [Tooltip("The axis on which the chest should open. All other axis will be frozen.")]
         public Direction direction = Direction.autodetect;
-
+        [Tooltip("The game object for the lid.")]
         public GameObject lid;
+        [Tooltip("The game object for the body.")]
         public GameObject body;
+        [Tooltip("The game object for the handle.")]
         public GameObject handle;
-        [Tooltip("An optional game object that is the parent of the content inside the chest. If set all interactables will become managed so that they only react if the lid is wide enough open.")]
+        [Tooltip("The parent game object for the chest content elements.")]
         public GameObject content;
-        [Tooltip("Will make the content invisible if the chest is closed. This way players cannot peak into it by moving the camera.")]
+        [Tooltip("Makes the content invisible while the chest is closed.")]
         public bool hideContent = true;
+        [Tooltip("The maximum opening angle of the chest.")]
         public float maxAngle = 160f;
 
         private float minAngle = 0f;
         private float stepSize = 1f;
-
         private Rigidbody handleRb;
         private FixedJoint handleFj;
-        private VRTK_InteractableObject handleIo;
+        private VRTK_InteractableObject io;
         private Rigidbody lidRb;
         private HingeJoint lidHj;
         private Rigidbody bodyRb;
-
         private Direction finalDirection;
         private float subDirection = 1; // positive or negative can be determined automatically since handle dictates that
         private bool lidHjCreated;
@@ -38,9 +50,17 @@
             }
 
             // show opening direction
-            Bounds handleBounds = Utilities.GetBounds(handle.transform, handle.transform);
-            float length = handleBounds.extents.y * 5f;
-            Vector3 point = handleBounds.center + new Vector3(0, length, 0);
+            Bounds bounds;
+            if (handle)
+            {
+                bounds = Utilities.GetBounds(handle.transform, handle.transform);
+            }
+            else
+            {
+                bounds = Utilities.GetBounds(lid.transform, lid.transform);
+            }
+            float length = bounds.extents.y * 5f;
+            Vector3 point = bounds.center + new Vector3(0, length, 0);
             switch (finalDirection)
             {
                 case Direction.x:
@@ -54,7 +74,7 @@
                     break;
             }
 
-            Gizmos.DrawLine(handleBounds.center + new Vector3(0, handleBounds.extents.y, 0), point);
+            Gizmos.DrawLine(bounds.center + new Vector3(0, bounds.extents.y, 0), point);
             Gizmos.DrawSphere(point, length / 8f);
         }
 
@@ -69,7 +89,7 @@
 
         protected override bool DetectSetup()
         {
-            if (lid == null || body == null || handle == null)
+            if (lid == null || body == null)
             {
                 return false;
             }
@@ -80,31 +100,36 @@
                 return false;
             }
 
-            // determin sub-direction depending on handle
-            Bounds handleBounds = Utilities.GetBounds(handle.transform, transform);
             Bounds lidBounds = Utilities.GetBounds(lid.transform, transform);
-            switch (finalDirection)
-            {
-                case Direction.x:
-                    subDirection = (handleBounds.center.x > lidBounds.center.x) ? -1 : 1;
-                    break;
-                case Direction.y:
-                    subDirection = (handleBounds.center.y > lidBounds.center.y) ? -1 : 1;
-                    break;
-                case Direction.z:
-                    subDirection = (handleBounds.center.z > lidBounds.center.z) ? -1 : 1;
-                    break;
-            }
 
-            if (lid & handle)
+            // determin sub-direction depending on handle
+            if (handle)
             {
+                Bounds handleBounds = Utilities.GetBounds(handle.transform, transform);
+                switch (finalDirection)
+                {
+                    case Direction.x:
+                        subDirection = (handleBounds.center.x > lidBounds.center.x) ? -1 : 1;
+                        break;
+                    case Direction.y:
+                        subDirection = (handleBounds.center.y > lidBounds.center.y) ? -1 : 1;
+                        break;
+                    case Direction.z:
+                        subDirection = (handleBounds.center.z > lidBounds.center.z) ? -1 : 1;
+                        break;
+                }
+
                 // handle should be outside lid hierarchy, otherwise anchor-by-bounds calculation is off
                 if (handle.transform.IsChildOf(lid.transform))
                 {
                     return false;
                 }
             }
-            if (lidHjCreated && handle)
+            else
+            {
+                subDirection = -1;
+            }
+            if (lidHjCreated)
             {
                 lidHj.useLimits = true;
                 lidHj.enableCollision = true;
@@ -175,6 +200,11 @@
         {
             Direction direction = Direction.autodetect;
 
+            if (!handle)
+            {
+                return direction;
+            }
+
             Bounds handleBounds = Utilities.GetBounds(handle.transform, transform);
             Bounds lidBounds = Utilities.GetBounds(lid.transform, transform);
 
@@ -228,10 +258,19 @@
                 lidHjCreated = true;
             }
             lidHj.connectedBody = bodyRb;
+
+            if (!handle)
+            {
+                CreateIO(lid);
+            }
         }
 
         private void InitHandle()
         {
+            if (!handle)
+            {
+                return;
+            }
             handleRb = handle.GetComponent<Rigidbody>();
             if (handleRb == null)
             {
@@ -247,14 +286,20 @@
                 handleFj.connectedBody = lidRb;
             }
 
-            handleIo = handle.GetComponent<VRTK_InteractableObject>();
-            if (handleIo == null)
+            CreateIO(handle);
+        }
+
+        private void CreateIO(GameObject go)
+        {
+            io = go.GetComponent<VRTK_InteractableObject>();
+            if (io == null)
             {
-                handleIo = handle.AddComponent<VRTK_InteractableObject>();
+                io = go.AddComponent<VRTK_InteractableObject>();
             }
-            handleIo.isGrabbable = true;
-            handleIo.precisionSnap = true;
-            handleIo.grabAttachMechanic = VRTK_InteractableObject.GrabAttachType.Track_Object;
+            io.isGrabbable = true;
+            io.precisionSnap = true;
+            io.stayGrabbedOnTeleport = false;
+            io.grabAttachMechanic = VRTK_InteractableObject.GrabAttachType.Track_Object;
         }
 
         private float CalculateValue()

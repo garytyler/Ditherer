@@ -11,10 +11,15 @@ public class FogFader : MonoBehaviour
     
     void Start()
     {
-        onStartDensity = RenderSettings.fogDensity;
-        currentDensity = RenderSettings.fogDensity;
+        onStartDensity = .05f;
+        currentDensity = .05f;
     }
     
+    void LateStart()
+    {
+        RenderSettings.fogDensity = .05f;
+    }
+
     void Update()
     {
         //For testing
@@ -104,6 +109,7 @@ public class FogFader : MonoBehaviour
         StopCoroutine("FadeOut");
         StartCoroutine("FadeIn", fadeInStartDelayInSecs);
     }
+
     IEnumerator FadeInDelayed(float fadeInDurationInSecsArg)
     {
         yield return new WaitForSeconds(fadeInStartDelayInSecs);

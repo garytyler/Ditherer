@@ -1,7 +1,17 @@
-﻿namespace VRTK
+﻿// Lever|Controls3D|0070
+namespace VRTK
 {
     using UnityEngine;
 
+    /// <summary>
+    /// Attaching the script to a game object will allow the user to interact with it as if it were a lever. The direction can be freely set.
+    /// </summary>
+    /// <remarks>
+    /// The script will instantiate the required Rigidbody, Interactable and HingeJoint components automatically in case they do not exist yet. The joint is very tricky to setup automatically though and will only work in straight forward cases. If there are any issues, then create the HingeJoint component manually and configure it as needed.
+    /// </remarks>
+    /// <example>
+    /// `VRTK/Examples/025_Controls_Overview` has a couple of levers that can be grabbed and moved. One lever is horizontal and the other is vertical.
+    /// </example>
     public class VRTK_Lever : VRTK_Control
     {
         public enum LeverDirection
@@ -9,15 +19,19 @@
             x, y, z
         }
 
+        [Tooltip("The axis on which the lever should rotate. All other axis will be frozen.")]
         public LeverDirection direction = LeverDirection.y;
+        [Tooltip("The minimum angle of the lever counted from its initial position.")]
         public float minAngle = 0f;
+        [Tooltip("The maximum angle of the lever counted from its initial position.")]
         public float maxAngle = 130f;
+        [Tooltip("The increments in which lever values can change.")]
+        public float stepSize = 1f;
 
-        private float stepSize = 1f;
+        protected HingeJoint hj;
 
         private Rigidbody rb;
         private VRTK_InteractableObject io;
-        private HingeJoint hj;
         private bool hjCreated = false;
 
         protected override void InitRequiredComponents()
@@ -44,7 +58,8 @@
             }
             io.isGrabbable = true;
             io.precisionSnap = true;
-            io.grabAttachMechanic = VRTK_InteractableObject.GrabAttachType.Track_Object;
+            io.stayGrabbedOnTeleport = false;
+            io.grabAttachMechanic = VRTK_InteractableObject.GrabAttachType.Rotator_Track;
 
             hj = GetComponent<HingeJoint>();
             if (hj == null)

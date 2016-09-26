@@ -5,7 +5,7 @@ public class SetHandButtonPos : MonoBehaviour {
 
     public Transform controllerAttachPoint;
 
-    void FixedUpdate()
+    void Update()
     {   
         transform.position = controllerAttachPoint.position;
     }

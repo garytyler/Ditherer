@@ -1,19 +1,39 @@
-﻿namespace VRTK
+﻿// Independent Radial Menu Controller|Prefabs|0050
+namespace VRTK
 {
     using UnityEngine;
     using System.Collections.Generic;
     using System.Collections;
+
+    /// <summary>
+    /// This script inherited from `RadialMenuController` and therefore can be used instead of `RadialMenuController` to allow the RadialMenu to be anchored to any object, not just a controller. The RadialMenu will show when a controller is near the object and the buttons can be clicked with the `Use Alias` button. The menu also automatically rotates towards the user.
+    /// </summary>
+    /// <remarks>
+    /// To convert the default `RadialMenu` prefab to be independent of the controllers:
+    ///
+    ///   * Make the `RadialMenu` a child of an object other than a controller.
+    ///   * Position and scale the menu by adjusting the transform of the `RadialMenu` empty.
+    ///   * Replace `RadialMenuController` with `VRTK_IndependentRadialMenuController`.
+    ///   * Ensure the parent object has the `VRTK_InteractableObject` script.
+    ///   * Verify that `Is Usable` and `Hold Button to Use` are both checked.
+    ///   * Attach `VRTK_InteractTouch` and `VRTK_InteractUse` scripts to the controllers.
+    /// </remarks>
     public class VRTK_IndependentRadialMenuController : RadialMenuController
     {
         #region Variables
+        [Tooltip("If the RadialMenu is the child of an object with VRTK_InteractableObject attached, this will be automatically obtained. It can also be manually set.")]
         public VRTK_InteractableObject eventsManager;
+        [Tooltip("Whether or not the script should dynamically add a SphereCollider to surround the menu.")]
         public bool addMenuCollider = true;
-        [Range (0, 10)]
+        [Tooltip("This times the size of the RadialMenu is the size of the collider.")]
+        [Range(0, 10)]
         public float colliderRadiusMultiplier = 1.2f;
+        [Tooltip("If true, after a button is clicked, the RadialMenu will hide.")]
         public bool hideAfterExecution = true;
-
+        [Tooltip("How far away from the object the menu should be placed, relative to the size of the RadialMenu.")]
         [Range(-10, 10)]
         public float offsetMultiplier = 1.1f;
+        [Tooltip("The object the RadialMenu should face towards. If left empty, it will automatically try to find the Headset Camera.")]
         public GameObject rotateTowards;
 
         private List<GameObject> interactingObjects; // Objects (controllers) that are either colliding with the menu or clicking the menu
@@ -42,15 +62,15 @@
             {
                 if (eventsManager != null)
                 { // Unsubscribe from the old events
-                    OnDisable ();
+                    OnDisable();
                 }
 
                 eventsManager = newEventsManager;
 
                 // Subscribe to new events
-                OnEnable ();
+                OnEnable();
 
-                Object.Destroy (menuCollider);
+                Object.Destroy(menuCollider);
 
                 // Reset to initial state
                 Initialize();
@@ -62,7 +82,7 @@
             if (eventsManager == null)
             {
                 initialRotation = transform.localRotation;
-                UpdateEventsManager ();
+                UpdateEventsManager();
                 return; // If all goes well in updateEventsManager, it will then call Initialize again, skipping this if statement
             }
 
@@ -92,12 +112,12 @@
                 transform.localScale = Vector3.one; // If this were left at zero it would ruin the transformations below
 
                 Quaternion startingRot = transform.rotation;
-                transform.rotation = Quaternion.Euler (new Vector3 (0, 0, 0)); // Rotation can mess up the calculations below
+                transform.rotation = Quaternion.Euler(new Vector3(0, 0, 0)); // Rotation can mess up the calculations below
 
                 SphereCollider collider = eventsManager.gameObject.AddComponent<SphereCollider>();
 
                 // All of the transformVector's are to account for the scaling of the radial menu's 'panel' and the scaling of the eventsManager parent object
-                collider.radius = (transform.GetChild(0).GetComponent<RectTransform>().rect.width / 2) * colliderRadiusMultiplier * eventsManager.transform.InverseTransformVector(transform.GetChild (0).TransformVector(Vector3.one)).x;
+                collider.radius = (transform.GetChild(0).GetComponent<RectTransform>().rect.width / 2) * colliderRadiusMultiplier * eventsManager.transform.InverseTransformVector(transform.GetChild(0).TransformVector(Vector3.one)).x;
                 collider.center = eventsManager.transform.InverseTransformVector(transform.position - eventsManager.transform.position);
 
                 collider.isTrigger = true;
@@ -116,7 +136,7 @@
             gameObject.SetActive(true);
         }
 
-        protected override void OnEnable ()
+        protected override void OnEnable()
         {
             if (eventsManager != null)
             {
@@ -129,11 +149,11 @@
             }
             else
             {
-                Initialize ();
+                Initialize();
             }
         }
 
-        protected override void OnDisable ()
+        protected override void OnDisable()
         {
             if (eventsManager != null)
             {
@@ -191,7 +211,7 @@
             collidingObjects.Remove(e.interactingObject);
             if (((!menu.executeOnUnclick || !isClicked) && menu.hideOnRelease) || (Object)sender == this)
             {
-                base.DoHideMenu(hideAfterExecution ,sender);
+                base.DoHideMenu(hideAfterExecution, sender);
 
                 interactingObjects.Remove(e.interactingObject);
                 if (addMenuCollider && menuCollider != null)
@@ -202,11 +222,15 @@
             }
         }
 
-        protected override void AttemptHapticPulse (ushort strength)
+        protected override void AttemptHapticPulse(ushort strength)
         {
             if (interactingObjects.Count > 0)
             {
-                SteamVR_Controller.Input ((int)interactingObjects[0].GetComponent<SteamVR_TrackedObject> ().index).TriggerHapticPulse (strength);
+                var controllerActions = interactingObjects[0].GetComponent<VRTK_ControllerActions>();
+                if (controllerActions)
+                {
+                    controllerActions.TriggerHapticPulse(strength);
+                }
             }
         }
         #endregion Event Listeners
@@ -259,7 +283,7 @@
                     {
                         if (collider != menuCollider)
                         {
-                            foreach(var controllerCollider in controllerColliders)
+                            foreach (var controllerCollider in controllerColliders)
                             {
                                 if (controllerCollider.bounds.Intersects(collider.bounds))
                                 {
@@ -295,35 +319,35 @@
         #region Unity Methods
         private void Awake()
         {
-            menu = GetComponent<RadialMenu> ();
+            menu = GetComponent<RadialMenu>();
         }
 
         private void Start()
         {
-            Initialize ();
+            Initialize();
         }
 
         private void Update()
         {
             if (rotateTowards == null) // Backup
             {
-                rotateTowards = GameObject.Find ("Camera (eye)");
+                rotateTowards = VRTK_DeviceFinder.HeadsetCamera().gameObject;
                 if (rotateTowards == null)
                 {
-                    Debug.LogWarning ("The IndependentRadialMenu could not automatically find an object to rotate towards.");
+                    Debug.LogWarning("The IndependentRadialMenu could not automatically find an object to rotate towards.");
                 }
             }
 
-            if (menu.isShown) 
+            if (menu.isShown)
             {
                 if (interactingObjects.Count > 0) // There's not really an event for the controller moving, so just update the position every frame
                 {
-                    base.DoChangeAngle (CalculateAngle (interactingObjects[0]), this);
+                    base.DoChangeAngle(CalculateAngle(interactingObjects[0]), this);
                 }
 
                 if (rotateTowards != null)
                 {
-                    transform.rotation = Quaternion.LookRotation ((rotateTowards.transform.position - transform.position) * -1, Vector3.up) * initialRotation; // Face the target, but maintain initial rotation
+                    transform.rotation = Quaternion.LookRotation((rotateTowards.transform.position - transform.position) * -1, Vector3.up) * initialRotation; // Face the target, but maintain initial rotation
                 }
             }
         }

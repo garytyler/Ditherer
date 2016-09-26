@@ -15,7 +15,7 @@ public class SetHandButtonRot : MonoBehaviour {
         lookAtAnchor = new GameObject();
     }
 
-    void FixedUpdate()
+    void LateUpdate()
     {
         lookAtAnchor.transform.position = controllerAttachPoint.position;
         lookAtAnchor.transform.LookAt(cameraHead);

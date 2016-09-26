@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEditor.SceneManagement;
+//using SceneManagement;
 using VRTK;
 
 public class ControllerEventsListener : MonoBehaviour
@@ -122,7 +122,7 @@ public class ControllerEventsListener : MonoBehaviour
     private void DoApplicationMenuReleased(object sender, ControllerInteractionEventArgs e)
     {
         //DebugLogger(e.controllerIndex, "APPLICATION MENU", "released", e);
-        EditorSceneManager.LoadScene(EditorSceneManager.GetActiveScene().name);
+        UnityEngine.SceneManagement.SceneManager.LoadScene("SceneRetail");
     }
 
     private void DoGripPressed(object sender, ControllerInteractionEventArgs e)

@@ -1,6 +1,8 @@
 ﻿namespace VRTK
 {
     using UnityEngine;
+    using System.Reflection;
+    using Highlighters;
 
     public class Utilities : MonoBehaviour
     {
@@ -93,16 +95,13 @@
         public static Transform AddCameraFade()
         {
             var camera = VRTK_DeviceFinder.HeadsetCamera();
-            if (camera && !camera.gameObject.GetComponent<SteamVR_Fade>())
-            {
-                camera.gameObject.AddComponent<SteamVR_Fade>();
-            }
+            VRTK_SDK_Bridge.AddHeadsetFade(camera);
             return camera;
         }
 
-        public static void CreateColliders(GameObject go)
+        public static void CreateColliders(GameObject obj)
         {
-            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
+            Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
             foreach (Renderer renderer in renderers)
             {
                 if (!renderer.gameObject.GetComponent<Collider>())
@@ -121,6 +120,43 @@
             return Mathf.Atan2(
                 Vector3.Dot(n, Vector3.Cross(v1, v2)),
                 Vector3.Dot(v1, v2)) * Mathf.Rad2Deg;
+        }
+
+        public static bool TagOrScriptCheck(GameObject obj, VRTK_TagOrScriptPolicyList tagOrScriptList, string ignoreString)
+        {
+            if (tagOrScriptList)
+            {
+                return tagOrScriptList.Find(obj);
+            }
+            else
+            {
+                return (obj.tag == ignoreString || obj.GetComponent(ignoreString) != null);
+            }
+        }
+
+        public static Component CloneComponent(Component source, GameObject destination)
+        {
+            Component tmpComponent = destination.gameObject.AddComponent(source.GetType());
+            foreach (FieldInfo f in source.GetType().GetFields())
+            {
+                f.SetValue(tmpComponent, f.GetValue(source));
+            }
+            return tmpComponent;
+        }
+
+        public static VRTK_BaseHighlighter GetActiveHighlighter(GameObject obj)
+        {
+            VRTK_BaseHighlighter objectHighlighter = null;
+            foreach (var tmpHighlighter in obj.GetComponents<VRTK_BaseHighlighter>())
+            {
+                if (tmpHighlighter.active)
+                {
+                    objectHighlighter = tmpHighlighter;
+                    break;
+                }
+            }
+
+            return objectHighlighter;
         }
     }
 }

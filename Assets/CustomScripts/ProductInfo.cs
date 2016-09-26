@@ -12,7 +12,8 @@ public class ProductInfo : MonoBehaviour {
         UniverseBluRayProduct,//4
         JetLagPillProduct,//5
         BalanceBarProduct,//6
-        CandleProduct//7
+        CandleProduct,//7
+        OutOfStock//8
     }
 
     public Type Get()
